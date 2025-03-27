@@ -1,13 +1,14 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Card from '@/components/Card';
 import TagBadge from '@/components/TagBadge';
 import DataGrid from '@/components/DataGrid';
+import FileUpload from '@/components/FileUpload';
 import { Search } from 'lucide-react';
 
 const Tags = () => {
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [uploadedData, setUploadedData] = useState<any[] | null>(null);
 
   const toggleTag = (tag: string) => {
     const newSelectedTags = new Set(selectedTags);
@@ -17,6 +18,13 @@ const Tags = () => {
       newSelectedTags.add(tag);
     }
     setSelectedTags(newSelectedTags);
+  };
+
+  const handleFileLoaded = (data: any) => {
+    console.log('File loaded:', data);
+    if (data.success && data.data) {
+      setUploadedData(data.data);
+    }
   };
 
   const positiveTags = [
@@ -37,8 +45,7 @@ const Tags = () => {
   
   const etcTags = ['No extreme characteristics'];
 
-  // Sample data - in a real app, this would be filtered based on selected tags
-  const filteredStocks = [
+  const filteredStocks = uploadedData || [
     { Symbol: 'AAPL', Sector: 'Technology', 'Total Score': 85, 'Valuation': 78, 'Growth': 90, 'Stability': 82, 'Performance': 88, 'Total Return': 75 },
     { Symbol: 'MSFT', Sector: 'Technology', 'Total Score': 88, 'Valuation': 82, 'Growth': 85, 'Stability': 90, 'Performance': 86, 'Total Return': 82 },
     { Symbol: 'AMZN', Sector: 'Consumer Cyclical', 'Total Score': 83, 'Valuation': 75, 'Growth': 88, 'Stability': 80, 'Performance': 85, 'Total Return': 79 },
@@ -46,7 +53,6 @@ const Tags = () => {
     { Symbol: 'TSLA', Sector: 'Consumer Cyclical', 'Total Score': 79, 'Valuation': 65, 'Growth': 95, 'Stability': 70, 'Performance': 84, 'Total Return': 82 },
   ];
 
-  // Configure grid columns
   const columns = [
     { key: 'Symbol', title: 'Symbol' },
     { key: 'Sector', title: 'Sector' },
@@ -102,6 +108,10 @@ const Tags = () => {
       >
         Tags Matching
       </motion.h1>
+      
+      <Card title="Upload Data" delay={0.05}>
+        <FileUpload onFileLoaded={handleFileLoaded} />
+      </Card>
       
       <Card title="Filter by Tags" delay={0.1}>
         <div className="space-y-4">
@@ -168,7 +178,7 @@ const Tags = () => {
         )}
       </Card>
       
-      <Card title="Matching Stocks" delay={0.2}>
+      <Card title={uploadedData ? "Uploaded Data" : "Matching Stocks"} delay={0.2}>
         <div className="relative mb-4">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <Search className="h-4 w-4 text-muted-foreground" />
