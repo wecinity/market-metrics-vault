@@ -1,14 +1,12 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface CardProps extends Omit<HTMLMotionProps<"div">, "title"> {
   title?: string;
   subtitle?: string;
   icon?: React.ReactNode;
-  className?: string;
-  children: React.ReactNode;
   delay?: number;
 }
 

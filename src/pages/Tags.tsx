@@ -4,18 +4,19 @@ import { motion } from 'framer-motion';
 import Card from '@/components/Card';
 import TagBadge from '@/components/TagBadge';
 import DataGrid from '@/components/DataGrid';
-import FileUpload from '@/components/FileUpload';
 import { loadFileSync, availableFiles, loadFile } from '@/services/fileService';
-import { Search, RefreshCw } from 'lucide-react';
+import { Search, RefreshCw, ArrowDown, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 const Tags = () => {
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [uploadedData, setUploadedData] = useState<any[] | null>(null);
-  const [selectedFile, setSelectedFile] = useState<string>(availableFiles[0]);
+  const [selectedFile, setSelectedFile] = useState<string>('score.xlsx');
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
 
   // Load initial data
   useEffect(() => {
@@ -28,8 +29,17 @@ const Tags = () => {
     try {
       const fileData = await loadFile(selectedFile);
       setUploadedData(fileData.data);
+      toast({
+        title: "Data loaded successfully",
+        description: `Loaded ${fileData.data.length} records from ${selectedFile}`,
+      });
     } catch (error) {
       console.error('Error loading file:', error);
+      toast({
+        title: "Error loading data",
+        description: "There was a problem loading the selected file",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -45,16 +55,11 @@ const Tags = () => {
     setSelectedTags(newSelectedTags);
   };
 
-  const handleFileLoaded = (data: any) => {
-    console.log('File loaded:', data);
-    if (data.success && data.data) {
-      setUploadedData(data.data);
-    }
-  };
-
   const positiveTags = [
     'Attractive valuation', 
     'Promising growth',
+    'Promising performance',
+    'Promising stability',
     'Thriving profitability', 
     'Resilient financial structure',
     'Reliable total return'
@@ -88,43 +93,46 @@ const Tags = () => {
     return Array.from(selectedTags).every(tag => stockTags.includes(tag));
   }) : [];
 
+  const renderScore = (value: number) => (
+    <div className={`font-semibold ${value >= 60 ? 'text-emerald-600 dark:text-emerald-400' : 
+                      value >= 40 ? 'text-amber-600 dark:text-amber-400' : 
+                      'text-rose-600 dark:text-rose-400'}`}>
+      {value}
+    </div>
+  );
+
+  const renderProgressBar = (value: number, color: string) => (
+    <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
+      <div 
+        className={`${color} h-full rounded-full`} 
+        style={{ width: `${value}%` }}
+      />
+    </div>
+  );
+
   const columns = [
     { key: 'Symbol', title: 'Symbol' },
     { key: 'Sector', title: 'Sector' },
     { key: 'Total Score', title: 'Total Score', 
-      render: (value: number) => (
-        <div className="font-semibold">{value}</div>
-      ) 
+      render: (value: number) => renderScore(value)
     },
     { key: 'Valuation', title: 'Valuation', 
-      render: (value: number) => (
-        <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-          <div 
-            className="bg-primary h-full rounded-full" 
-            style={{ width: `${value}%` }}
-          ></div>
-        </div>
-      ) 
+      render: (value: number) => renderProgressBar(value, 'bg-primary')
     },
-    { key: 'Growth', title: 'Growth', 
-      render: (value: number) => (
-        <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-          <div 
-            className="bg-emerald-500 h-full rounded-full" 
-            style={{ width: `${value}%` }}
-          ></div>
-        </div>
-      ) 
+    { key: 'Performance', title: 'Performance', 
+      render: (value: number) => renderProgressBar(value, 'bg-blue-500')
     },
     { key: 'Stability', title: 'Stability', 
-      render: (value: number) => (
-        <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-          <div 
-            className="bg-blue-500 h-full rounded-full" 
-            style={{ width: `${value}%` }}
-          ></div>
-        </div>
-      ) 
+      render: (value: number) => renderProgressBar(value, 'bg-emerald-500')
+    },
+    { key: 'Expansion', title: 'Expansion', 
+      render: (value: number) => renderProgressBar(value, 'bg-amber-500')
+    },
+    { key: 'Total Return', title: 'Return', 
+      render: (value: number) => renderProgressBar(value, 'bg-purple-500')
+    },
+    { key: 'Cash Flow', title: 'Cash Flow', 
+      render: (value: number) => renderProgressBar(value, 'bg-indigo-500')
     },
   ];
 
@@ -173,7 +181,7 @@ const Tags = () => {
           </div>
           
           <div className="text-sm text-muted-foreground">
-            <p>* Using simulated data. In a production environment, you would load actual Excel files.</p>
+            <p>* Using simulated data based on your stock scoring spreadsheet. For best results, select 'score.xlsx' to see all data.</p>
           </div>
         </div>
       </Card>
@@ -255,6 +263,10 @@ const Tags = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+        </div>
+        
+        <div className="text-sm mb-2 text-muted-foreground">
+          {filteredStocks.length} stocks matching your criteria
         </div>
         
         <DataGrid 
