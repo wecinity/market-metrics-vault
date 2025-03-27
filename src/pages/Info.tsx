@@ -39,11 +39,11 @@ const InfoPage = () => {
         },
         {
           name: 'Earnings Per Share Growth',
-          description: 'Indicator of a company's profitability increase over time.'
+          description: 'Indicator of a company\'s profitability increase over time.'
         },
         {
           name: 'Dividend Growth',
-          description: 'Reflects the company's increasing cash flow to shareholders.'
+          description: 'Reflects the company\'s increasing cash flow to shareholders.'
         },
       ]
     },
