@@ -1,11 +1,10 @@
-
 import React from 'react';
-import { motion, HTMLMotionProps } from 'framer-motion';
+import { motion, HTMLMotionProps, MotionValue } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface CardProps extends Omit<HTMLMotionProps<"div">, "title"> {
-  title?: React.ReactNode;
-  subtitle?: React.ReactNode;
+  title?: React.ReactNode | MotionValue<number> | MotionValue<string>;
+  subtitle?: React.ReactNode | MotionValue<number> | MotionValue<string>;
   icon?: React.ReactNode;
   delay?: number;
 }
@@ -19,6 +18,16 @@ const Card: React.FC<CardProps> = ({
   delay = 0,
   ...props
 }) => {
+  const renderContent = (content: React.ReactNode | MotionValue<number> | MotionValue<string> | undefined) => {
+    if (content === undefined) return null;
+    
+    if (content && typeof content === 'object' && 'get' in content && typeof content.get === 'function') {
+      return String(content.get());
+    }
+    
+    return content;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -35,8 +44,8 @@ const Card: React.FC<CardProps> = ({
           <div className="flex items-center gap-2">
             {icon && <div className="text-primary">{icon}</div>}
             <div>
-              {title && <h3 className="dashboard-card-title">{typeof title === 'object' ? title : String(title)}</h3>}
-              {subtitle && <p className="text-sm text-muted-foreground">{typeof subtitle === 'object' ? subtitle : String(subtitle)}</p>}
+              {title && <h3 className="dashboard-card-title">{renderContent(title)}</h3>}
+              {subtitle && <p className="text-sm text-muted-foreground">{renderContent(subtitle)}</p>}
             </div>
           </div>
         </div>
