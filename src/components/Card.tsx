@@ -4,8 +4,8 @@ import { motion, HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface CardProps extends Omit<HTMLMotionProps<"div">, "title"> {
-  title?: string;
-  subtitle?: string;
+  title?: React.ReactNode;
+  subtitle?: React.ReactNode;
   icon?: React.ReactNode;
   delay?: number;
 }

@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Upload, FileX, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { toast } from '@/components/ui/toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface FileUploadProps {
   onFileLoaded: (data: any) => void;
@@ -17,6 +16,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
