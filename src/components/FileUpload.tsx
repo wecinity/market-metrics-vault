@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Upload, FileX, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { toast } from '@/components/ui/toast';
 
 interface FileUploadProps {
   onFileLoaded: (data: any) => void;
@@ -56,6 +57,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
         
         onFileLoaded(mockData);
         setLoading(false);
+        toast({
+          title: "File processed successfully",
+          description: `Processed: ${file.name}`
+        });
       }, 1000);
     } catch (err) {
       console.error('Error processing file:', err);

@@ -1,14 +1,39 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Card from '@/components/Card';
 import TagBadge from '@/components/TagBadge';
 import DataGrid from '@/components/DataGrid';
 import FileUpload from '@/components/FileUpload';
-import { Search } from 'lucide-react';
+import { loadFileSync, availableFiles, loadFile } from '@/services/fileService';
+import { Search, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const Tags = () => {
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [uploadedData, setUploadedData] = useState<any[] | null>(null);
+  const [selectedFile, setSelectedFile] = useState<string>(availableFiles[0]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Load initial data
+  useEffect(() => {
+    const initialData = loadFileSync(selectedFile);
+    setUploadedData(initialData.data);
+  }, []);
+
+  const loadSelectedFile = async () => {
+    setLoading(true);
+    try {
+      const fileData = await loadFile(selectedFile);
+      setUploadedData(fileData.data);
+    } catch (error) {
+      console.error('Error loading file:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleTag = (tag: string) => {
     const newSelectedTags = new Set(selectedTags);
@@ -45,13 +70,23 @@ const Tags = () => {
   
   const etcTags = ['No extreme characteristics'];
 
-  const filteredStocks = uploadedData || [
-    { Symbol: 'AAPL', Sector: 'Technology', 'Total Score': 85, 'Valuation': 78, 'Growth': 90, 'Stability': 82, 'Performance': 88, 'Total Return': 75 },
-    { Symbol: 'MSFT', Sector: 'Technology', 'Total Score': 88, 'Valuation': 82, 'Growth': 85, 'Stability': 90, 'Performance': 86, 'Total Return': 82 },
-    { Symbol: 'AMZN', Sector: 'Consumer Cyclical', 'Total Score': 83, 'Valuation': 75, 'Growth': 88, 'Stability': 80, 'Performance': 85, 'Total Return': 79 },
-    { Symbol: 'GOOGL', Sector: 'Communication Services', 'Total Score': 86, 'Valuation': 80, 'Growth': 87, 'Stability': 84, 'Performance': 87, 'Total Return': 80 },
-    { Symbol: 'TSLA', Sector: 'Consumer Cyclical', 'Total Score': 79, 'Valuation': 65, 'Growth': 95, 'Stability': 70, 'Performance': 84, 'Total Return': 82 },
-  ];
+  // Filter stocks based on tags and search term
+  const filteredStocks = uploadedData ? uploadedData.filter(stock => {
+    // Filter by search term
+    if (searchTerm && !stock.Symbol.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !stock.Sector.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+    
+    // If no tags selected, return all stocks that match search
+    if (selectedTags.size === 0) {
+      return true;
+    }
+    
+    // Check if stock has ALL the selected tags
+    const stockTags = stock.Tags || [];
+    return Array.from(selectedTags).every(tag => stockTags.includes(tag));
+  }) : [];
 
   const columns = [
     { key: 'Symbol', title: 'Symbol' },
@@ -109,8 +144,38 @@ const Tags = () => {
         Tags Matching
       </motion.h1>
       
-      <Card title="Upload Data" delay={0.05}>
-        <FileUpload onFileLoaded={handleFileLoaded} />
+      <Card title="Select Data Source" delay={0.05}>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Select value={selectedFile} onValueChange={setSelectedFile}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a file" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableFiles.map((file) => (
+                  <SelectItem key={file} value={file}>
+                    {file}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Button onClick={loadSelectedFile} disabled={loading}>
+              {loading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                'Load Data'
+              )}
+            </Button>
+          </div>
+          
+          <div className="text-sm text-muted-foreground">
+            <p>* Using simulated data. In a production environment, you would load actual Excel files.</p>
+          </div>
+        </div>
       </Card>
       
       <Card title="Filter by Tags" delay={0.1}>
@@ -178,7 +243,7 @@ const Tags = () => {
         )}
       </Card>
       
-      <Card title={uploadedData ? "Uploaded Data" : "Matching Stocks"} delay={0.2}>
+      <Card title="Matching Stocks" delay={0.2}>
         <div className="relative mb-4">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <Search className="h-4 w-4 text-muted-foreground" />
@@ -187,6 +252,8 @@ const Tags = () => {
             type="text" 
             placeholder="Search stocks..." 
             className="w-full pl-10 pr-4 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
