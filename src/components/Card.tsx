@@ -35,8 +35,8 @@ const Card: React.FC<CardProps> = ({
           <div className="flex items-center gap-2">
             {icon && <div className="text-primary">{icon}</div>}
             <div>
-              {title && <h3 className="dashboard-card-title">{title}</h3>}
-              {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+              {title && <h3 className="dashboard-card-title">{typeof title === 'object' ? title : String(title)}</h3>}
+              {subtitle && <p className="text-sm text-muted-foreground">{typeof subtitle === 'object' ? subtitle : String(subtitle)}</p>}
             </div>
           </div>
         </div>
