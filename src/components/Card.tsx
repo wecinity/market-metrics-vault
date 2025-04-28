@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { motion, HTMLMotionProps, MotionValue } from 'framer-motion';
+import { motion, HTMLMotionProps, MotionValue, useMotionValue } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface CardProps extends Omit<HTMLMotionProps<"div">, "title"> {
@@ -45,8 +45,8 @@ const Card: React.FC<CardProps> = ({
           <div className="flex items-center gap-2">
             {icon && <div className="text-primary">{icon}</div>}
             <div>
-              {title && <h3 className="dashboard-card-title">{renderContent(title)}</h3>}
-              {subtitle && <p className="text-sm text-muted-foreground">{renderContent(subtitle)}</p>}
+              {title && <h3 className="dashboard-card-title">{renderContent(title) as React.ReactNode}</h3>}
+              {subtitle && <p className="text-sm text-muted-foreground">{renderContent(subtitle) as React.ReactNode}</p>}
             </div>
           </div>
         </div>
